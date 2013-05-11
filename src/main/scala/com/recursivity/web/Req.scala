@@ -2,7 +2,9 @@ package com.recursivity.web
 
 import org.joda.time.DateTime
 
-
+/**
+ * Note that for the Seq based conversions, an empty list will always be returned if any one element fails conversion
+ */
 object Req {
   import Conversions._
 

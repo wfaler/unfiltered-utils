@@ -2,7 +2,6 @@ package com.recursivity.web
 
 import scalaz._
 import Scalaz._
-import unfiltered.request.Params
 
 class Validation {
   def validate[A,B](errorValue: A, input: B, validator: (B) => Boolean): ValidationNel[A,B] = {
