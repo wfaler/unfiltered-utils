@@ -36,6 +36,29 @@ object JsonView{
 
 }
 
+object Hateoas{
+  import Json._
+
+  implicit def unitToResponse(unit: Unit) = NoContent
+
+  implicit def productToResponse[A : HateoasResource](model: A)(implicit jsonFormats: Formats = defaultFormats) = 
+    JsonView.productToResponse(implicitly[HateoasResource[A]].resource(model))
+
+  implicit def validationResultToResponse[A,B : HateoasResource](validationResult: ValidationNel[A,B])(implicit jsonFormats: Formats = defaultFormats) = {
+    validationResult.fold(fail => {
+      BadRequest ~> JsonContent ~> ResponseString(compact(render(JArray(fail.list map decompose))))
+    },success => productToResponse(success))
+  }
+
+}
+
+trait HateoasResource[A]{
+  def resource(value: A): Resource[A]
+}
+
+case class Resource[A](value: A, links: List[Link])
+case class Link(rel: String, href: String)
+
 object BigDecimalSerializer extends Serializer[BigDecimal]{
   private val BigDecimalClass = classOf[BigDecimal]
 
