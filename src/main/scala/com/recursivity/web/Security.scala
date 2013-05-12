@@ -12,6 +12,8 @@ object PBKDF2Password{
     java.util.Arrays.equals(encryptedPass, encryptedPassword(attemptedPassword, salt))
   }
 
+  /** Assumes that the salt unique for each user is stored together with the password derived key
+  */
   def encryptedPassword(password: String, salt: Array[Byte], iterations: Int = 20000, keyLength: Int = 160): Array[Byte] = {
     val spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength)
     val keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
