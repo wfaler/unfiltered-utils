@@ -9,6 +9,13 @@ object Validations {
     else errorValue.failureNel
   }
 
+  private val nums = "1" :: "2" :: "3" :: "4" :: "5" :: "6" :: "7" :: "8" :: "9" :: "0" :: Nil
+
+  def validPassword(input: String, minLength: Int = 8): Boolean = 
+    input.trim.length == input.length && input.toLowerCase != input && input.toUpperCase != input &&
+      isStringBetween(input, minLength) && nums.exists(input.contains)
+  
+
   def nonEmptyString(input: String) = isStringBetween(input,1)
 
   def isEmail(input: String) = {
