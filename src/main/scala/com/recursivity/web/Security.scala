@@ -10,7 +10,8 @@ import unfiltered.response._
 import unfiltered.Cookie
 
 object PBKDF2Password{
-  /** Assumes that the salt unique for each user is stored together with the password derived key
+  /**
+  * Assumes that the salt unique for each user is stored together with the password derived key
   */
   def authenticate(attemptedPassword: String, encryptedPass: Array[Byte], salt: Array[Byte]): Boolean = {
     java.util.Arrays.equals(encryptedPass, encryptedPassword(attemptedPassword, salt))
@@ -32,38 +33,38 @@ object PBKDF2Password{
 }
 
 trait AccessControl{
-  def accessAllowed[A,B](sessionId: A)(block: => ResponseFunction[B]): ResponseFunction[B] = if(isValidSession(sessionId)) block else Unauthorized
+  def accessAllowed[B](sessionId: String)(block: => ResponseFunction[B]): ResponseFunction[B] = if(isValidSession(sessionId)) block else Unauthorized
 
-  def isValidSession[A](sessionId: A): Boolean
+  def isValidSession(sessionId: String): Boolean
 
-  def invalidateSession[A](sessionId: A)
+  def invalidateSession(sessionId: String)
 }
 
-trait SignInIntent[A] extends AccessControl{
+trait SignInIntent extends AccessControl{
   import Req._
 
-  type UnfilteredIntent[A] = PartialFunction[HttpRequest[A], ResponseFunction[A]]
+  //type UnfilteredIntent[A] = PartialFunction[HttpRequest[A], ResponseFunction[A]]
 
   def cookieName: String
 
-  def userParam: String
+  val userParam: String = "username"
 
-  def passParam: String
+  val passParam: String = "password"
 
-  def signIn[A](username: String, password: String): Option[A]
+  def signIn(username: String, password: String): Option[String]
   
-  def sessionIntent: UnfilteredIntent[A] = {
+  val sessionIntent = unfiltered.filter.Planify {
     case req @ GET(Path(Seg("api" :: "session" :: Nil))) & Cookies(cookies) => 
       cookies(cookieName) map{c => if(isValidSession(c.value)) NoContent else Unauthorized} getOrElse Unauthorized
     case req @ POST(Path(Seg("api" :: "session" :: Nil))) & Params(params) => {
       implicit val parameters = params
       signIn(string(userParam) getOrElse "", string(passParam) getOrElse "") map
-        {session => SetCookies(Cookie(cookieName, session.toString, path = Some("/"))) ~> NoContent} getOrElse Unauthorized
+        {session => SetCookies(Cookie(cookieName, session, path = Some("/"))) ~> Ok} getOrElse Unauthorized
     }
     case req @ DELETE(Path(Seg("api" :: "session" :: Nil))) => forget
     case req @ GET(Path(Seg("api" :: "session" :: "forget" :: Nil))) => forget
     case _ => Pass  
   }
 
-  private def forget = SetCookies(Cookie(cookieName, "")) ~> NoContent
+  private def forget = SetCookies(Cookie(cookieName, "", path = Some("/"), maxAge = Some(0))) ~> Ok
 }

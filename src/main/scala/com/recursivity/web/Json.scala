@@ -53,10 +53,10 @@ object Hateoas{
 }
 
 trait HateoasResource[A]{
-  def resource(value: A): Resource[A]
+  def resource(value: A): HttpResource[A]
 }
 
-case class Resource[A](value: A, links: List[Link])
+case class HttpResource[A](value: A, links: List[Link])
 case class Link(rel: String, href: String)
 
 object BigDecimalSerializer extends Serializer[BigDecimal]{
