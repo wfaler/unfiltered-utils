@@ -8,9 +8,10 @@ import net.liftweb.json.Printer._
 import net.liftweb.json.JsonParser._
 import scalaz._
 import unfiltered.response.ResponseString
+import org.joda.time.DateTime
 
 object Json {
-  val defaultFormats = (net.liftweb.json.DefaultFormats + BigDecimalSerializer)
+  val defaultFormats = (net.liftweb.json.DefaultFormats + BigDecimalSerializer + DateTimeSerializer)
 
   def toJson[A](value: A)(implicit jsonFormats: Formats = defaultFormats): String = compact(render(decompose(value)))
 
@@ -47,5 +48,22 @@ object BigDecimalSerializer extends Serializer[BigDecimal]{
 
   def serialize(implicit format: Formats): PartialFunction[Any, JValue] = {
     case x: BigDecimal => JDouble(x.toDouble)
+  }
+}
+
+object DateTimeSerializer extends Serializer[DateTime]{
+  import java.text.SimpleDateFormat
+  private val DateTimeClass = classOf[DateTime]
+  private def df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+
+  def deserialize(implicit format: Formats): PartialFunction[(TypeInfo, JValue), DateTime] = {
+    case (TypeInfo(DateTimeClass, _), json) => json match {
+      case JString(d) => new DateTime(df.parse(d))
+      case x => throw new MappingException("Can't convert " + x + " to DateTime")
+    }
+  }
+
+  def serialize(implicit format: Formats): PartialFunction[Any, JValue] = {
+    case x: DateTime => JString(df.format(x.toDate()))
   }
 }

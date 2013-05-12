@@ -40,22 +40,29 @@ object Req {
   def booleanPartial: PartialFunction[String,Boolean] = {
     case "0" => false
     case "1" => true
-    case "true" => true
-    case "false" => false
-    case "on" => true
-    case "On" => true
-    case "ON" => true
+    case s: String if(s.toLowerCase() == "true") => true
+    case s: String if(s.toLowerCase() == "false") => false
+    case s: String if(s.toLowerCase() == "on") => true
     case _ => false
   }
 
 }
 
 object Conversions{
+  import java.text.SimpleDateFormat
+
   def toInt(s: String) = s.toInt
   def toLong(s: String) = s.toLong
   def toDouble(s: String) = s.toDouble
   def toDecimal(s: String) = BigDecimal(s)
-  def toDateTime(s: String): DateTime = null
+  def toDateTime(s: String): DateTime = {
+    val dfs = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss") :: new SimpleDateFormat("yyyy-MM-dd HH:mm:ss") :: new SimpleDateFormat("yyyy-MM-dd") :: Nil     
+    val toDateFn = (str: String, df: SimpleDateFormat) => new DateTime(df.parse(str))
+
+    val dateOpts = dfs map { df => toOpt(toDateFn(_: String,df), s)}
+    println(dateOpts)
+    dateOpts.filter{_.isDefined}.head.get
+  }
 
   def toOpt[A](f: (String) => A, a: Option[String]): Option[A] = a flatMap{v => try Some(f(v)) catch{ case e: Exception => None}}
   def toOpt[A](f: (String) => A, a: String): Option[A] = try Some(f(a)) catch{ case e: Exception => None}

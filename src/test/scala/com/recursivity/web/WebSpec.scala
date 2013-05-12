@@ -5,9 +5,12 @@ import com.recursivity.web.Html.View
 
 import scalaz._
 import Scalaz._
+import org.joda.time.DateTime 
+import org.joda.time.DateTimeZone
 
 
 class WebSpec extends Specification{
+  val dateHolder = new DateHolder(new DateTime)
 
   "The Html" should{
     "be able to render a template" in{
@@ -24,6 +27,9 @@ class WebSpec extends Specification{
     }
     "be able to create json string from an object" in{
       Json.toJson(Foo("drink",BigDecimal(30.1))) must_==("""{"bar":"drink","age":30.1}""")
+    }
+    "be able to create json string from an object with a dateTime" in{
+      Json.fromJson[DateHolder](Json.toJson(dateHolder)) must be_==(dateHolder)
     }
   }
 
@@ -70,6 +76,7 @@ class WebSpec extends Specification{
     "invalidNum" -> "foo", "invalidOpt" -> Seq("1","2")).withDefaultValue(Nil) 
 
   import Req._
+  import Conversions._
 
   "Request mapping" should{
      "deal with ints correctly" in{
@@ -101,7 +108,7 @@ class WebSpec extends Specification{
        decimal("invalidOpt") must beNone
      }
 
-      "deal with booleans correctly" in{
+     "deal with booleans correctly" in{
        bool("int") must be_==(true)
        bool("bool") must be_==(true)
        bool("check") must be_==(true)
@@ -109,13 +116,21 @@ class WebSpec extends Specification{
        bool("nonexistent") must be_==(false)
        bools("invalidOpt") must be_==(true :: false :: Nil)
      }
+
+     "deal with dates correctly" in{
+       toDateTime("2001-07-04T12:08:56.235").getYear() must be_==(2001)
+       toDateTime("2001-07-04 12:08:56.235").getYear() must be_==(2001)
+       toDateTime("2001-07-04T12:08:56").getYear() must be_==(2001)
+       toDateTime("2001-07-04 12:08").getYear() must be_==(2001)
+       toDateTime("2001-07-04").getYear() must be_==(2001)
+     }
   }
 
 }
 
 case class Foo(bar: String, age: BigDecimal)
 
-
+case class DateHolder(date: DateTime)
 
 
 
