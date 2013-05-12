@@ -47,7 +47,7 @@ object UnfilteredUtils extends Build {
     val scalaLang = "org.scala-lang" % "scala-library" % "2.10.1"
     val jodaTime = "joda-time" % "joda-time" % "1.6.1"
     val unfilteredFilter = "net.databinder" %% "unfiltered-filter" % uv
-    val unfilteredJetty = "net.databinder" %% "unfiltered-jetty" % uv % provided
+    val unfilteredJetty = "net.databinder" %% "unfiltered-jetty" % uv % "provided" 
    // val unfiltered = "net.databinder" %% "unfiltered-netty" % uv
     val liftJson = "net.liftweb" %% "lift-json" % "2.5-RC5"
     val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.0"
