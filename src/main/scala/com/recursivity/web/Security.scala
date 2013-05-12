@@ -40,7 +40,7 @@ trait AccessControl{
   def invalidateSession(sessionId: String)
 }
 
-trait SignInIntent extends AccessControl{
+trait SessionIntent extends AccessControl{
   import Req._
 
   //type UnfilteredIntent[A] = PartialFunction[HttpRequest[A], ResponseFunction[A]]
