@@ -2,9 +2,6 @@ package com.recursivity.web
 
 import org.joda.time.DateTime
 
-/**
- * Note that for the Seq based conversions, an empty list will always be returned if any one element fails conversion
- */
 object Req {
   import Conversions._
 
@@ -16,14 +13,7 @@ object Req {
 
   def decimal(name: String)(implicit params: Map[String,Seq[String]]): Option[BigDecimal] = toOpt(toDecimal(_), string(name))
 
-  def bool(name: String)(implicit params: Map[String,Seq[String]]): Option[Boolean] = {
-    string(name).collect({
-      case "0" => false
-      case "1" => true
-      case "true" => true
-      case "false" => false
-    })
-  }
+  def bool(name: String)(implicit params: Map[String,Seq[String]]): Boolean = string(name) collect booleanPartial getOrElse false
 
   def date(name: String)(implicit params: Map[String,Seq[String]]): Option[DateTime] = toOpt(toDateTime(_), string(name))
 
@@ -31,28 +21,31 @@ object Req {
 
   // plurals
 
-  def ints(name: String)(implicit params: Map[String,Seq[String]]): Seq[Int] = seqOrNil(name, toInt)
+  def ints(name: String)(implicit params: Map[String,Seq[String]]): Seq[Int] = seq(name, toInt)
 
-  def longs(name: String)(implicit params: Map[String,Seq[String]]): Seq[Long] = seqOrNil(name, toLong)
+  def longs(name: String)(implicit params: Map[String,Seq[String]]): Seq[Long] = seq(name, toLong)
 
-  def doubles(name: String)(implicit params: Map[String,Seq[String]]): Seq[Double] = seqOrNil(name, toDouble)
+  def doubles(name: String)(implicit params: Map[String,Seq[String]]): Seq[Double] = seq(name, toDouble)
 
-  def decimals(name: String)(implicit params: Map[String,Seq[String]]): Seq[BigDecimal] = seqOrNil(name, toDecimal)
+  def decimals(name: String)(implicit params: Map[String,Seq[String]]): Seq[BigDecimal] = seq(name, toDecimal)
 
-  def bools(name: String)(implicit params: Map[String,Seq[String]]): Seq[Boolean] = seqOrNil(name, (b) => b match{
+  def bools(name: String)(implicit params: Map[String,Seq[String]]): Seq[Boolean] = params(name) collect booleanPartial
+
+  def dates(name: String)(implicit params: Map[String,Seq[String]]): Seq[DateTime] = seq(name, toDateTime)
+
+  def strings(name: String)(implicit params: Map[String,Seq[String]]): Seq[String] = params(name)
+
+  def seq[A](name: String, f: (String) => A)(implicit params: Map[String,Seq[String]]): Seq[A] = params(name) map{v => toOpt(f,v)} flatMap {_.toSeq}
+
+  def booleanPartial: PartialFunction[String,Boolean] = {
     case "0" => false
     case "1" => true
     case "true" => true
     case "false" => false
-  })
-
-  def dates(name: String)(implicit params: Map[String,Seq[String]]): Seq[DateTime] = seqOrNil(name, toDateTime)
-
-  def strings(name: String)(implicit params: Map[String,Seq[String]]): Seq[String] = params(name)
-
-  def seqOrNil[A](name: String, f: (String) => A)(implicit params: Map[String,Seq[String]]): Seq[A] = {
-    val seq = params(name) map{v => toOpt(f,v)}
-    if(seq forall(_.isDefined)) seq flatMap {_.toSeq} else Nil
+    case "on" => true
+    case "On" => true
+    case "ON" => true
+    case _ => false
   }
 
 }

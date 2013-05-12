@@ -4,6 +4,7 @@ import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
+import unfiltered.response._
 
 object PBKDF2Password{
 
@@ -24,4 +25,10 @@ object PBKDF2Password{
     salt
   }
 
+}
+
+trait AccessControl{
+  def accessAllowed[A,B](sessionId: A)(block: => ResponseFunction[B]): ResponseFunction[B] = if(isValidSession(sessionId)) block else Unauthorized
+
+  def isValidSession[A](sessionId: A): Boolean
 }
