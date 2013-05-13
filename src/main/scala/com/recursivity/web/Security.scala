@@ -53,7 +53,7 @@ trait SessionIntent extends AccessControl{
 
   def signIn(username: String, password: String): Option[String]
   
-  val sessionIntent = unfiltered.filter.Planify {
+  val sessionIntent = unfiltered.netty.cycle.Planify { // don't use this, refer to unfiltered docs and fix
     case req @ GET(Path(Seg("api" :: "session" :: Nil))) & Cookies(cookies) => 
       cookies(cookieName) map{c => if(isValidSession(c.value)) NoContent else Unauthorized} getOrElse Unauthorized
     case req @ POST(Path(Seg("api" :: "session" :: Nil))) & Params(params) => {
