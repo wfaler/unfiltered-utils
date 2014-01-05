@@ -65,8 +65,17 @@ class WebSpec extends Specification{
     "validate e-mails with subdomains correctly" in {
       isEmail("wf.ab@sub.foobar.com") must beTrue
     }
+    "validate e-mails with dashes correctly" in {
+      isEmail("wf_ab@sub.foo-bar.com") must beTrue
+    }
     "invalidate e-mails correctly" in {
       isEmail("wf@foobar.c") must beFalse
+    }
+    "invalidate e-mails without a domain" in {
+      isEmail("wf@foobar") must beFalse
+    }
+    "invalidate e-mails without a @" in {
+      isEmail("wffoobar.com") must beFalse
     }
   }
 
